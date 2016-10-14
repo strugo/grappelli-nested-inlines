@@ -78,11 +78,11 @@ class NestedModelAdmin(ModelAdmin):
                                     save_as_new="_saveasnew" in request.POST,
                                     instance=form.instance,
                                     prefix=prefix,
-                                    queryset=nested_inline.queryset(request)
+                                    queryset=nested_inline.get_queryset(request)
                                 )
                 else:
                     nested_formset = InlineFormSet(instance=form.instance,
-                                                   prefix=prefix, queryset=nested_inline.queryset(request))
+                                                   prefix=prefix, queryset=nested_inline.get_queryset(request))
                 nested_formsets.append(nested_formset)
                 if nested_inline.inlines:
                     self.add_nested_inline_formsets(request, nested_inline, nested_formset, depth=depth+1)
@@ -178,7 +178,7 @@ class NestedModelAdmin(ModelAdmin):
                 form_validated = False
                 new_object = self.model()
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request), inline_instances):
+            for FormSet, inline in self.get_formsets_with_inlines(request):
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
@@ -186,7 +186,7 @@ class NestedModelAdmin(ModelAdmin):
                 formset = FormSet(data=request.POST, files=request.FILES,
                                   instance=new_object,
                                   save_as_new="_saveasnew" in request.POST,
-                                  prefix=prefix, queryset=inline.queryset(request))
+                                  prefix=prefix, queryset=inline.get_queryset(request))
                 formsets.append(formset)
                 if inline.inlines:
                     self.add_nested_inline_formsets(request, inline, formset)
@@ -208,13 +208,13 @@ class NestedModelAdmin(ModelAdmin):
                     initial[k] = initial[k].split(",")
             form = ModelForm(initial=initial)
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request), inline_instances):
+            for FormSet, inline in self.get_formsets_with_inlines(request):
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 formset = FormSet(instance=self.model(), prefix=prefix,
-                                  queryset=inline.queryset(request))
+                                  queryset=inline.get_queryset(request))
                 formsets.append(formset)
                 if inline.inlines:
                     self.add_nested_inline_formsets(request, inline, formset)
@@ -283,7 +283,7 @@ class NestedModelAdmin(ModelAdmin):
                 form_validated = False
                 new_object = obj
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request, new_object), inline_instances):
+            for FormSet, inline in self.get_formsets_with_inlines(request, new_object):
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
@@ -305,13 +305,13 @@ class NestedModelAdmin(ModelAdmin):
         else:
             form = ModelForm(instance=obj)
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request, obj), inline_instances):
+            for FormSet, inline in self.get_formsets_with_inlines(request, obj):
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 formset = FormSet(instance=obj, prefix=prefix,
-                                  queryset=inline.queryset(request))
+                                  queryset=inline.get_queryset(request))
                 formsets.append(formset)
                 if inline.inlines:
                     self.add_nested_inline_formsets(request, inline, formset)
@@ -339,7 +339,7 @@ class NestedModelAdmin(ModelAdmin):
             'adminform': adminForm,
             'object_id': object_id,
             'original': obj,
-            'is_popup': "_popup" in request.REQUEST,
+            'is_popup': "_popup" in zip(request.POST.keys(),request.GET.keys()),
             'media': media,
             'inline_admin_formsets': inline_admin_formsets,
             'errors': AdminErrorList(form, formsets),
