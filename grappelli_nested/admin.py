@@ -2,6 +2,7 @@ from django import VERSION as DJANGO_VERSION
 from django.contrib.admin.options import (ModelAdmin, InlineModelAdmin,
     csrf_protect_m, models, transaction, all_valid,
     PermissionDenied, unquote, reverse)
+from django.forms.widgets import Media
 
 from django.contrib.admin.helpers import InlineAdminFormSet, AdminForm
 from django.http import Http404
@@ -114,7 +115,7 @@ class NestedModelAdmin(ModelAdmin):
         """wraps each formset in a helpers.InlineAdminFormset.
         @TODO someone with more inside knowledge should write done why this is done
         """
-        media = None
+        media = Media()
         def get_media(extra_media):
             if media:
                 return media + extra_media
